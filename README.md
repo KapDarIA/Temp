@@ -1,154 +1,109 @@
-# Задание 1
-
-int main()
-{
-	setlocale(0, "ru");
-	int a = -15;
-	int b = 1234;
-	int min;
-	_asm {
-		mov EAX, a
-		mov EBX, b
-		CMP EBX, EAX
-		JLE min_number1
-		mov min, EAX
-		JMP end_fun
-		min_number1:
-			mov min, EBX
-		end_fun:
-     }
-	cout << "Наименьшее число: " << min;
-}
-
-# Задание 2
-
-int main()
-{
-	setlocale(0, "ru");
-	int a = -1204;
-	int b = 904;
-	int c = -1212;
-	int max;
-	_asm {
-		mov EAX, a
-		mov EBX, b
-		mov EDX, c
-
-		CMP EAX,EBX
-		JL CONTINUE1
-			mov max,EAX
-			JMP CONTINUE2
-		CONTINUE1:
-		mov max, EBX
-
-		CONTINUE2:
-		CMP max, EDX
-		JG END
-			mov max, EDX
-			JMP END
-		END:
-	}
-	cout << "Наибольшее число: " << max;
-}
-
-# Задание 3
-
-int main()
-{
-    int a = 5;
-    int x = 3;
-    int y;
-    _asm {
-        mov EAX, a
-        mov EBX, x
-        CMP EBX, -10
-        JL fun1
-        CMP EBX, 10
-        JGE fun3
-        FLD x
-        FABS
-        FSTP x
-        IMUL EAX, x
-        MOV y, EAX
-        JMP END
-
-        fun1:
-            IMUL EBX, x
-            IMUL EAX,EBX
-            MOV y, EAX
-            JMP END
-        fun3:
-            SUB EAX, EBX
-            MOV y,EAX
-            JMP END
-        END:
+public class Calculator {
+    public static double divide(double numerator, double denominator) {
+        if (denominator == 0) {
+            Log.e("Calculator", "Ошибка: деление на ноль.");
+            throw new ArithmeticException("Деление на ноль недопустимо.");
+        }
+        return numerator / denominator;
     }
-    cout << y;
 }
 
-# Задание 4
+#...
 
-int main()
-{
-	setlocale(0, "ru");
-	int month;
-	cin >> month;
-	int days;
-	_asm {
-		mov EAX, month
-		CMP EAX, 1
-		JE equal31
-		CMP EAX, 3
-		JE equal31
-		CMP EAX, 4
-		JE equal30
-		CMP EAX, 5
-		JE equal31
-		CMP EAX, 6
-		JE equal30
-		CMP EAX, 7
-		JE equal31
-		CMP EAX, 8
-		JE equal31
-		CMP EAX, 9
-		JE equal30
-		CMP EAX, 10
-		JE equal31
-		CMP EAX, 11
-		JE equal30
-		CMP EAX, 12
-		JE equal31
-		mov EDX, 28
-		JMP END
-		equal30 :
-		mov EDX, 30
-			JMP END
-		equal31:
-			mov EDX, 31
-			JMP END
-		END:
-		mov days, EDX
-	}
-	cout << "Количество дней в месяце: " << days;
+public class MainActivity extends AppCompatActivity {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        try {
+            double result = Calculator.divide(10, 0); // Здесь будет вызвана ошибка
+            Log.i("MainActivity", "Результат: " + result);
+        } catch (ArithmeticException e) {
+            Log.e("MainActivity", "Ошибка при делении: " + e.getMessage());
+        }
+    }
 }
 
-# Задание 5
+#...
 
-int main()
-{
-    setlocale(0, "ru");
-	int sum;
-	cin >> sum;
-	int cost = 1000;
-	_asm {
-		mov EAX, sum
-		SUB EAX, cost
-		mov sum, EAX
-	}
-	if (sum == 0)
-		cout << "Спасибо!";
-	else if (sum < 0)
-		cout << "Недостаточно: " << -sum;
-	else
-		cout << "Возьмите сдачу: " << sum;
+import static org.junit.Assert.*;
+import org.junit.Test;
+
+public class ExampleUnitTest {
+    @Test
+    public void testDividePositive() {
+        double result = Calculator.divide(10, 2);
+        assertEquals(5, result, 0);
+    }
+
+    @Test(expected = ArithmeticException.class)
+    public void testDivideByZero() {
+        Calculator.divide(10, 0);
+    }
 }
+
+#...
+
+@Composable
+fun LoginScreen() {
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+
+    Column {
+        TextField(
+            value = username,
+            onValueChange = { username = it },
+            label = { Text("Логин") },
+            modifier = Modifier.testTag("usernameField")
+        )
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Пароль") },
+            modifier = Modifier.testTag("passwordField")
+        )
+        Button(onClick = {
+            if (username == "user" && password == "password") {
+                message = "Успешная авторизация"
+            } else {
+                message = "Неверные учетные данные"
+            }
+        }) {
+            Text("Вход")
+        }
+        Text(text = message, modifier = Modifier.testTag("messageLabel"))
+    }
+}
+
+#...
+
+@get:Rule
+var composeTestRule = createComposeRule()
+
+@Test
+fun testSuccessfulLogin() {
+    composeTestRule.setContent {
+        LoginScreen()
+    }
+
+    composeTestRule.onNodeWithTag("usernameField").performTextInput("user")
+    composeTestRule.onNodeWithTag("passwordField").performTextInput("password")
+    composeTestRule.onNodeWithText("Вход").performClick()
+    composeTestRule.onNodeWithTag("messageLabel").assertTextEquals("Успешная авторизация")
+}
+
+@Test
+fun testFailedLogin() {
+    composeTestRule.setContent {
+        LoginScreen()
+    }
+
+    composeTestRule.onNodeWithTag("usernameField").performTextInput("user")
+
+    composeTestRule.onNodeWithTag("passwordField").performTextInput("wrongpassword")
+    composeTestRule.onNodeWithText("Вход").performClick()
+    composeTestRule.onNodeWithTag("messageLabel").assertTextEquals("Неверные учетные данные")
+}
+
